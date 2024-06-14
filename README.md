@@ -69,4 +69,41 @@ int n = recvfrom(server_fd, buffer, BUFFER_SIZE - 1, 0, (struct sockaddr *)&clie
 
 # 8 баллов - ihw4_v2  
 
-Так как предыдущая версия monitor.c включает в себя механизм мульткаста, возможность подключения множества клиентов-наблюдателей к серверу уже реализована. Это позволяет наблюдателям динамически подключаться и отключаться от сервера без перебоев в его работе.  
+Так как предыдущая версия `monitor.c` включает в себя механизм мульткаста, возможность подключения множества клиентов-наблюдателей к серверу уже реализована. Это позволяет наблюдателям динамически подключаться и отключаться от сервера без перебоев в его работе.  
+
+# 9-10 баллов - ihw4_v3
+
+`controller.c` отправляет команды start или stop на IP адрес, указанный в командной строке, и на фиксированный порт (9090), который прослушивают клиенты.  
+```
+// управляющие команды
+int bytes_received = recvfrom(control_sock, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT, (struct sockaddr *)&from, &from_len);
+if (bytes_received > 0) {
+    buffer[bytes_received] = '\0';  // Null-terminate the received string
+    if (strcmp(buffer, "stop") == 0) {
+        client_paused = 1;
+        printf("Client paused\n");
+    } else if (strcmp(buffer, "start") == 0) {
+        client_paused = 0;
+        printf("Client resumed\n");
+    }
+}
+```
+`client.c` прослушивает порт 9090 для получения управляющих команд. Когда приходит команда stop, клиент перестает отправлять запросы на сервер; команда start активирует клиента обратно.
+`server.c` отправляет сообщения "shutdown" через мультикаст при завершении работы для корректного завершения работы всех клиентов.
+```
+bytes_received = recvfrom(multicast_sock, buffer, BUFFER_SIZE - 1, MSG_DONTWAIT, (struct sockaddr *)&from, &from_len);
+if (bytes_received > 0) {
+    buffer[bytes_received] = '\0';  // Null-terminate the received string
+    if (strcmp(buffer, "shutdown") == 0) {
+        client_running = 0;
+        printf("Client received shutdown message\n");
+    }
+}
+```
+1. Проверка работы **Start-Stop**
+<img width="1792" alt="Снимок экрана 2024-06-14 в 05 13 20" src="https://github.com/danikd1/OS_IHW4/assets/36849026/7a79855d-de12-4c3f-ab42-9e73da7a5f8c">
+
+2. Провера работы **Shutdown**
+<img width="1775" alt="Снимок экрана 2024-06-14 в 05 17 55" src="https://github.com/danikd1/OS_IHW4/assets/36849026/09b31383-7b42-4b01-8a06-5ef3953fd8eb">
+
+
