@@ -55,4 +55,14 @@ int n = recvfrom(server_fd, buffer, BUFFER_SIZE - 1, 0, (struct sockaddr *)&clie
 
 # 6-7 баллов - ihw4_v2  
 Программа monitor.c работает как мульткаст-клиент, принимающий данные, отправляемые сервером. Монитор создаёт UDP сокет и настраивает его для прослушивания мульткаст-сообщений по указанному адресу и порту. Это включает присоединение к мульткаст с помощью `IP_ADD_MEMBERSHIP`.  
+```
+// Присоединение к мульткаст-группе
+    mreq.imr_multiaddr.s_addr = inet_addr(MULTICAST_IP);
+    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    if (setsockopt(sock, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) {
+        perror("Setsockopt IP_ADD_MEMBERSHIP failed");
+        close(sock);
+        return 1;
+    }
+```
 <img width="1791" alt="Снимок экрана 2024-06-14 в 04 31 46" src="https://github.com/danikd1/OS_IHW4/assets/36849026/92df84bf-901f-4cd4-877c-7caedecc0b72">
